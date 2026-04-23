@@ -1,0 +1,2589 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tidsregistrering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f6f2ea;
+    --paper-2: #ede7dc;
+    --ink: #1a1d1a;
+    --ink-soft: #4a4d48;
+    --muted: #7d7b73;
+    --line: #d9d2c3;
+    --line-soft: #e6dfd0;
+    --accent: #2e4a36;
+    --accent-soft: #4a6b52;
+    --ochre: #b68636;
+    --rust: #a84a2e;
+    --sage: #8a9a7a;
+    --semester: #c88a3d;
+    --sjuk: #a84a2e;
+    --vab: #8363a8;
+    --foraldra: #5a8aaa;
+    --tjanst: #7d7b73;
+    --komp: #2d7a6c;
+    --atk: #647a2d;
+    --ledig: #c0b8a5;
+    --rod: #a62a1f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(180, 150, 100, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(46, 74, 54, 0.03) 0%, transparent 50%);
+  }
+
+  .app {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 40px 80px;
+  }
+
+  /* ——— HEADER ——— */
+  header.top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 28px;
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .brand h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 38px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .brand h1 em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  .brand .subtitle {
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all .15s ease;
+    letter-spacing: 0.01em;
+  }
+
+  .btn:hover {
+    border-color: var(--ink);
+    background: var(--paper-2);
+  }
+
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
+  }
+
+  .btn.primary:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+
+  .btn.ghost { border-color: transparent; color: var(--ink-soft); }
+  .btn.ghost:hover { color: var(--ink); background: var(--paper-2); border-color: var(--line-soft); }
+
+  .btn.tiny { padding: 4px 10px; font-size: 11px; }
+
+  /* ——— STORAGE BAR ——— */
+  .storage-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    margin-bottom: 22px;
+    font-size: 12px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink-soft);
+  }
+
+  .storage-bar.warn {
+    border-color: rgba(182, 134, 54, 0.5);
+    background: rgba(182, 134, 54, 0.06);
+  }
+
+  .storage-bar.ok {
+    border-color: rgba(46, 74, 54, 0.35);
+    background: rgba(46, 74, 54, 0.04);
+  }
+
+  .storage-bar .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ochre);
+    flex-shrink: 0;
+  }
+
+  .storage-bar.ok .status-dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(46, 74, 54, 0.15);
+  }
+
+  .storage-bar .status-text {
+    flex: 1;
+    letter-spacing: 0.01em;
+  }
+
+  .storage-bar .status-text strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .storage-bar .status-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  /* ——— CONTROLS BAR ——— */
+  .controls {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .year-pick {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+  }
+
+  .year-pick label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .year-pick select {
+    background: transparent;
+    border: none;
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+
+  .week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .week-nav .nav-btn {
+    background: none;
+    border: 1px solid var(--line);
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--ink-soft);
+    transition: all .15s ease;
+  }
+
+  .week-nav .nav-btn:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+    background: var(--paper-2);
+  }
+
+  .week-label {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 500;
+    min-width: 260px;
+    text-align: center;
+    letter-spacing: -0.01em;
+  }
+
+  .week-label .dates {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+  }
+
+  .right-controls {
+    display: flex;
+    gap: 6px;
+  }
+
+  /* ——— TABLE ——— */
+  .sheet {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    margin-bottom: 24px;
+  }
+
+  .sheet-head {
+    display: grid;
+    grid-template-columns: 72px 90px 90px 90px 90px 90px 80px 56px 150px 1fr;
+    padding: 10px 16px;
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--line);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .day-row {
+    display: grid;
+    grid-template-columns: 72px 90px 90px 90px 90px 90px 80px 56px 150px 1fr;
+    padding: 10px 16px;
+    align-items: center;
+    border-bottom: 1px solid var(--line-soft);
+    transition: background .1s ease;
+  }
+
+  .day-row:last-child { border-bottom: none; }
+
+  .day-row:hover { background: rgba(46, 74, 54, 0.02); }
+
+  .day-row.today {
+    background: rgba(182, 134, 54, 0.06);
+  }
+
+  .day-row.today:hover {
+    background: rgba(182, 134, 54, 0.1);
+  }
+
+  .day-row.weekend, .day-row.holiday {
+    background: rgba(166, 42, 31, 0.03);
+  }
+
+  .day-row.non-work .time-input {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .day-label {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    cursor: pointer;
+    padding: 2px 4px;
+    margin: -2px -4px;
+    border-radius: 2px;
+    transition: background .15s ease;
+  }
+
+  .day-label:hover {
+    background: rgba(46, 74, 54, 0.08);
+  }
+
+  .day-label .name {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .entry-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    background: var(--accent);
+    color: var(--paper);
+    border-radius: 9px;
+    letter-spacing: 0.02em;
+  }
+
+  .expand-hint {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity .15s ease;
+    font-weight: 300;
+  }
+
+  .day-label:hover .expand-hint {
+    opacity: 0.6;
+  }
+
+  .day-label .date {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .time-input, .text-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    font-family: 'Inter', monospace;
+    font-size: 13px;
+    color: var(--ink);
+    padding: 6px 4px;
+    width: 100%;
+    transition: border-color .15s ease;
+  }
+
+  .time-input {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+  }
+
+  .time-input:hover, .text-input:hover {
+    border-bottom-color: var(--line);
+  }
+
+  .time-input:focus, .text-input:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+  }
+
+  .hours-cell {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  .hours-cell.zero { color: var(--muted); font-weight: 400; }
+  .hours-cell.over { color: var(--accent); }
+
+  .car-cell {
+    display: flex;
+    justify-content: center;
+  }
+
+  .car-toggle {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    cursor: pointer;
+    position: relative;
+    transition: all .15s ease;
+  }
+
+  .car-toggle:hover { border-color: var(--ink); }
+
+  .car-toggle:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .car-toggle:checked::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 7px;
+    width: 5px;
+    height: 11px;
+    border: solid var(--paper);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .status-cell {
+    display: flex;
+    gap: 4px;
+    align-items: stretch;
+    min-width: 0;
+  }
+
+  .status-cell .status-select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .hours-input {
+    width: 46px;
+    flex-shrink: 0;
+    text-align: center;
+    font-family: 'Fraunces', serif;
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--atk);
+    background: var(--paper);
+    padding: 4px 2px;
+    color: var(--atk);
+  }
+
+  .hours-input:focus {
+    outline: none;
+    border-color: var(--ink);
+    background: var(--paper-2);
+  }
+
+  .status-select {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 12px;
+    padding: 5px 8px;
+    cursor: pointer;
+    width: 100%;
+    color: var(--ink);
+  }
+
+  .status-select:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+
+  .day-row[data-status="semester"] .status-select { color: var(--semester); font-weight: 500; }
+  .day-row[data-status="sjuk"] .status-select { color: var(--sjuk); font-weight: 500; }
+  .day-row[data-status="vab"] .status-select { color: var(--vab); font-weight: 500; }
+  .day-row[data-status="foraldra"] .status-select { color: var(--foraldra); font-weight: 500; }
+  .day-row[data-status="tjanst"] .status-select { color: var(--tjanst); font-weight: 500; }
+  .day-row[data-status="komp"] .status-select { color: var(--komp); font-weight: 500; }
+  .day-row[data-status="atk"] .status-select { color: var(--atk); font-weight: 500; }
+  .day-row[data-status="ledig"] .status-select { color: var(--ink-soft); font-weight: 500; }
+  .day-row[data-status="rod"] .status-select { color: var(--rod); font-weight: 500; }
+
+  /* ——— WEEK FOOTER ——— */
+  .week-foot {
+    display: grid;
+    grid-template-columns: 72px 90px 90px 90px 90px 90px 80px 56px 150px 1fr;
+    padding: 12px 16px;
+    align-items: center;
+    background: var(--paper-2);
+    border-top: 2px solid var(--line);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  .week-foot .totals-label {
+    grid-column: 1 / 7;
+    font-weight: 500;
+  }
+
+  .week-foot .total-hours {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .week-foot .total-hours .goal {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 400;
+  }
+
+  .week-foot .cars-total {
+    text-align: center;
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink);
+    text-transform: none;
+  }
+
+  /* ——— SUMMARY SECTION ——— */
+  .summary {
+    display: grid;
+    grid-template-columns: 1.2fr 0.9fr 1.3fr;
+    gap: 20px;
+    margin-top: 40px;
+  }
+
+  .panel-wide {
+    grid-column: auto;
+  }
+
+  .panel {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 24px;
+  }
+
+  .panel h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .panel h2 .year {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px 20px;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat .label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stat .value {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 1.1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat .value.muted { color: var(--muted); }
+  .stat .unit {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-left: 2px;
+  }
+
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .legend-row {
+    display: grid;
+    grid-template-columns: 14px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--line-soft);
+  }
+
+  .legend-row:last-child { border-bottom: none; }
+
+  .legend-row .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .legend-row .lbl { color: var(--ink-soft); }
+
+  .legend-row .count {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  /* ——— CLIENTS PANEL ——— */
+  .clients-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0 14px;
+    border-bottom: 1px solid var(--line-soft);
+    margin-bottom: 12px;
+  }
+
+  .clients-total .lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .clients-total .val {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .clients-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .client-row {
+    display: grid;
+    grid-template-columns: minmax(80px, 1.3fr) 1.5fr auto;
+    gap: 10px;
+    align-items: center;
+    font-size: 13px;
+  }
+
+  .client-name {
+    color: var(--ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .client-bar {
+    height: 7px;
+    background: var(--paper-2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .client-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+    border-radius: 4px;
+    transition: width .3s ease;
+  }
+
+  .client-hours {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    min-width: 48px;
+    text-align: right;
+  }
+
+  .projects-section {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line-soft);
+  }
+
+  .projects-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .project-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  .project-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 8px;
+  }
+
+  .project-hours {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .clients-empty {
+    padding: 24px 10px;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  /* ——— DIALOG ——— */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 29, 26, 0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    backdrop-filter: blur(4px);
+  }
+
+  .overlay.open { display: flex; }
+
+  .dialog {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 32px;
+    max-width: 520px;
+    width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .dialog h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+
+  .dialog p { color: var(--ink-soft); margin-bottom: 20px; font-size: 14px; }
+
+  .dialog-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  .dialog textarea {
+    width: 100%;
+    min-height: 140px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    padding: 10px;
+    resize: vertical;
+  }
+
+  /* ——— DAY VIEW DIALOG ——— */
+  .dayview-dialog {
+    max-width: 880px;
+    width: 95vw;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+  }
+
+  .dayview-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 28px 32px 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .dayview-header h3 {
+    margin-bottom: 4px;
+  }
+
+  .dayview-sub {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0;
+  }
+
+  .dayview-close-x {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .dayview-summary {
+    display: flex;
+    gap: 28px;
+    padding: 14px 32px;
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 12px;
+  }
+
+  .dayview-summary .stat-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .dayview-summary .stat-inline .lbl {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 10px;
+  }
+
+  .dayview-summary .stat-inline .val {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dayview-summary .match-ok { color: var(--accent); }
+  .dayview-summary .match-off { color: var(--rust); }
+
+  .dayview-entries {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 32px;
+    min-height: 200px;
+  }
+
+  .entries-head {
+    display: grid;
+    grid-template-columns: 80px 80px 1.2fr 1.5fr 2fr 32px;
+    gap: 10px;
+    padding: 0 0 8px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .entry-row {
+    display: grid;
+    grid-template-columns: 80px 80px 1.2fr 1.5fr 2fr 32px;
+    gap: 10px;
+    padding: 8px 0;
+    align-items: center;
+    border-bottom: 1px dashed var(--line-soft);
+  }
+
+  .entry-row:last-child { border-bottom: none; }
+
+  .entry-row input {
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: 1px solid var(--line-soft);
+    padding: 6px 4px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    width: 100%;
+  }
+
+  .entry-row input.entry-time {
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  .entry-row input:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+    background: var(--paper-2);
+  }
+
+  .entry-row .entry-del {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    border-radius: 2px;
+    transition: all .15s ease;
+  }
+
+  .entry-row .entry-del:hover {
+    color: var(--rust);
+    background: rgba(168, 74, 46, 0.08);
+  }
+
+  .entry-row .entry-dur {
+    text-align: center;
+    font-family: 'Fraunces', serif;
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .entries-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .entries-empty em {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    color: var(--ink-soft);
+    display: block;
+    margin-bottom: 6px;
+    font-style: italic;
+  }
+
+  .dayview-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 16px 32px;
+    border-top: 1px solid var(--line-soft);
+    background: var(--paper);
+  }
+
+  @media (max-width: 720px) {
+    .entries-head {
+      display: none;
+    }
+    .entry-row {
+      grid-template-columns: 1fr 1fr 32px;
+      row-gap: 6px;
+      padding: 14px 0;
+    }
+    .entry-row .entry-del { grid-column: 3; grid-row: 1; }
+    .entry-row input[data-f="start"] { grid-column: 1; grid-row: 1; }
+    .entry-row input[data-f="end"]   { grid-column: 2; grid-row: 1; }
+    .entry-row input[data-f="client"]{ grid-column: 1 / 3; grid-row: 2; }
+    .entry-row input[data-f="project"]{ grid-column: 1 / 3; grid-row: 3; }
+    .entry-row input[data-f="comment"]{ grid-column: 1 / 3; grid-row: 4; }
+    .entry-row .entry-dur            { grid-column: 3; grid-row: 2 / 5; align-self: center; }
+    .dayview-summary { flex-wrap: wrap; gap: 16px; padding: 14px 20px; }
+    .dayview-header, .dayview-entries, .dayview-actions { padding-left: 20px; padding-right: 20px; }
+  }
+
+  /* ——— TOAST ——— */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 18px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all .25s ease;
+    z-index: 100;
+    letter-spacing: 0.01em;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ——— FOOTER ——— */
+  footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .footer-signature {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+
+  .footer-signature .at {
+    color: var(--accent);
+    font-style: italic;
+    font-weight: 400;
+    margin: 0 2px;
+  }
+
+  .footer-meta {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  footer a { color: var(--ink-soft); }
+
+  /* ——— RESPONSIVE ——— */
+  @media (max-width: 1100px) {
+    .sheet-head, .day-row, .week-foot {
+      grid-template-columns: 60px 80px 80px 80px 80px 80px 70px 48px 130px 1fr;
+      font-size: 12px;
+    }
+    .app { padding: 24px; }
+    .summary { grid-template-columns: 1fr 1fr; }
+    .panel-wide { grid-column: 1 / -1; }
+  }
+
+  @media (max-width: 900px) {
+    .summary { grid-template-columns: 1fr; }
+    .panel-wide { grid-column: auto; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .sheet-head { display: none; }
+    .day-row {
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 12px;
+      padding: 12px 14px;
+    }
+    .day-row > * {
+      grid-column: span 1;
+    }
+    .day-label { grid-column: 1 / -1; border-bottom: 1px dashed var(--line-soft); padding-bottom: 6px; margin-bottom: 4px;}
+    .day-label .name { font-size: 15px; }
+    .time-input, .text-input, .status-select {
+      border: 1px solid var(--line-soft);
+      padding: 8px;
+      border-radius: 2px;
+    }
+    .hours-cell { grid-column: 1 / -1; text-align: right; border-top: 1px dashed var(--line-soft); padding-top: 6px; margin-top: 4px; }
+    .car-cell { grid-column: 1 / -1; justify-content: flex-start; }
+    .car-cell::before {
+      content: 'Bil till jobbet';
+      font-size: 12px;
+      color: var(--muted);
+      margin-right: 10px;
+    }
+    .week-foot { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .week-foot .totals-label { grid-column: 1 / -1; }
+    .controls { grid-template-columns: 1fr; gap: 12px; }
+    .brand h1 { font-size: 30px; }
+    header.top { flex-direction: column; align-items: stretch; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="top">
+    <div class="brand">
+      <h1>Tids<em>registrering</em></h1>
+      <div class="subtitle">Veckovisa tider · Bil till jobbet · Frånvaro</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn ghost" id="btn-today">Idag</button>
+      <button class="btn ghost" id="btn-copy-prev">Kopiera föregående</button>
+      <button class="btn ghost" id="btn-backup">Säkerhetskopia</button>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="year-pick">
+      <label for="year-select">År</label>
+      <select id="year-select"></select>
+    </div>
+
+    <div class="week-nav">
+      <button class="nav-btn" id="prev-week" aria-label="Föregående vecka">‹</button>
+      <div class="week-label">
+        <span id="week-title">Vecka 1</span>
+        <span class="dates" id="week-dates">—</span>
+      </div>
+      <button class="nav-btn" id="next-week" aria-label="Nästa vecka">›</button>
+    </div>
+
+    <div class="right-controls">
+      <button class="btn" id="btn-clear-week">Rensa vecka</button>
+    </div>
+  </div>
+
+  <div class="storage-bar" id="storage-bar">
+    <span class="status-dot" id="status-dot"></span>
+    <span class="status-text" id="status-text">—</span>
+    <div class="status-actions" id="status-actions"></div>
+  </div>
+
+  <div class="sheet">
+    <div class="sheet-head">
+      <div>Dag</div>
+      <div>Start</div>
+      <div>Lunch ut</div>
+      <div>Lunch in</div>
+      <div>Slut</div>
+      <div></div>
+      <div>Timmar</div>
+      <div style="text-align:center">Bil</div>
+      <div>Status</div>
+      <div>Notering</div>
+    </div>
+    <div id="week-body"></div>
+    <div class="week-foot">
+      <div class="totals-label">Veckosumma</div>
+      <div class="total-hours" id="week-total">0 <span class="goal">/ 40 h</span></div>
+      <div></div>
+      <div class="cars-total" id="week-cars">0</div>
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <section class="panel">
+      <h2>Sammanställning · <span class="year" id="stats-year">2026</span></h2>
+      <div class="stat-grid" id="year-stats"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Frånvaro &amp; bil</h2>
+      <div class="legend" id="absence-legend"></div>
+    </section>
+
+    <section class="panel panel-wide">
+      <h2>Kunder &amp; uppdrag</h2>
+      <div id="clients-panel"></div>
+    </section>
+  </div>
+
+  <footer>
+    <div class="footer-signature">Tolvers <span class="at">@</span> 2026</div>
+    <div class="footer-meta">
+      <span>Spara till fil för säker lagring · Fungerar med OneDrive/Dropbox-synk</span>
+      <span>ISO-veckor · Svenska röda dagar</span>
+    </div>
+  </footer>
+</div>
+
+<!-- DAY VIEW (PROJEKTPOSTER) -->
+<div class="overlay" id="dayview-overlay">
+  <div class="dialog dayview-dialog">
+    <div class="dayview-header">
+      <div>
+        <h3 id="dayview-title">Dag</h3>
+        <p class="dayview-sub" id="dayview-sub"></p>
+      </div>
+      <button class="btn ghost" id="dayview-close" aria-label="Stäng">✕</button>
+    </div>
+
+    <div class="dayview-summary" id="dayview-summary"></div>
+
+    <div class="dayview-entries" id="dayview-entries"></div>
+
+    <div class="dayview-actions">
+      <button class="btn" id="dayview-add">+ Ny post</button>
+      <button class="btn ghost" id="dayview-fill">Fyll från dagens tider</button>
+      <div style="flex:1"></div>
+      <button class="btn primary" id="dayview-done">Klar</button>
+    </div>
+  </div>
+</div>
+
+<!-- BACKUP DIALOG -->
+<div class="overlay" id="backup-overlay">
+  <div class="dialog">
+    <h3>Säkerhetskopia</h3>
+    <p>Kopiera texten nedan för att säkerhetskopiera, eller klistra in / välj en tidigare kopia för att återställa.</p>
+    <textarea id="backup-data" spellcheck="false"></textarea>
+    <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none">
+    <div class="dialog-actions">
+      <button class="btn ghost" id="backup-close">Stäng</button>
+      <button class="btn" id="backup-pick-file">Välj fil…</button>
+      <button class="btn" id="backup-download">Ladda ner</button>
+      <button class="btn primary" id="backup-restore">Återställ</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="overlay" id="confirm-overlay">
+  <div class="dialog">
+    <h3 id="confirm-title">Är du säker?</h3>
+    <p id="confirm-text"></p>
+    <div class="dialog-actions">
+      <button class="btn ghost" id="confirm-cancel">Avbryt</button>
+      <button class="btn primary" id="confirm-ok">Ja, fortsätt</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== FILE STORAGE (File System Access API) ==========
+   Sparar direkt till en vald fil på disken. Kräver en modern
+   Chromium-baserad webbläsare (Chrome, Edge, Opera). Om en fil
+   är kopplad används den som primär sanning och webbläsar-
+   lagringen fungerar som snabb-cache. */
+const FileStorage = {
+  handle: null,
+  pendingHandle: null, // Sparad referens men saknar behörighet
+
+  isSupported() {
+    return 'showSaveFilePicker' in window && 'indexedDB' in window;
+  },
+
+  async init() {
+    if (!this.isSupported()) return 'unsupported';
+    const h = await this.loadHandle();
+    if (!h) return 'no-handle';
+    try {
+      const perm = await h.queryPermission({ mode: 'readwrite' });
+      if (perm === 'granted') {
+        this.handle = h;
+        return 'connected';
+      }
+      this.pendingHandle = h;
+      return 'needs-auth';
+    } catch (e) { return 'error'; }
+  },
+
+  async reconnect() {
+    const h = this.pendingHandle || await this.loadHandle();
+    if (!h) return false;
+    try {
+      const perm = await h.requestPermission({ mode: 'readwrite' });
+      if (perm === 'granted') {
+        this.handle = h;
+        this.pendingHandle = null;
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  },
+
+  async createNew() {
+    try {
+      const h = await window.showSaveFilePicker({
+        suggestedName: 'tidsregistrering.json',
+        types: [{ description: 'JSON-fil', accept: { 'application/json': ['.json'] } }]
+      });
+      this.handle = h;
+      this.pendingHandle = null;
+      await this.saveHandle(h);
+      return h;
+    } catch (e) {
+      if (e.name === 'AbortError') return null;
+      throw e;
+    }
+  },
+
+  async openExisting() {
+    try {
+      const [h] = await window.showOpenFilePicker({
+        types: [{ description: 'JSON-fil', accept: { 'application/json': ['.json'] } }],
+        multiple: false
+      });
+      const perm = await h.requestPermission({ mode: 'readwrite' });
+      if (perm !== 'granted') return null;
+      this.handle = h;
+      this.pendingHandle = null;
+      await this.saveHandle(h);
+      return h;
+    } catch (e) {
+      if (e.name === 'AbortError') return null;
+      throw e;
+    }
+  },
+
+  async read() {
+    if (!this.handle) return null;
+    try {
+      const file = await this.handle.getFile();
+      const text = await file.text();
+      return text.trim() ? JSON.parse(text) : {};
+    } catch (e) { console.error('Fil-läsning misslyckades:', e); return null; }
+  },
+
+  async write(data) {
+    if (!this.handle) return false;
+    try {
+      const writable = await this.handle.createWritable();
+      await writable.write(JSON.stringify(data, null, 2));
+      await writable.close();
+      return true;
+    } catch (e) { console.error('Fil-skrivning misslyckades:', e); return false; }
+  },
+
+  async disconnect() {
+    this.handle = null;
+    this.pendingHandle = null;
+    try {
+      const db = await this.openDB();
+      const tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').delete('current');
+      await new Promise(r => tx.oncomplete = r);
+      db.close();
+    } catch (e) {}
+  },
+
+  async saveHandle(handle) {
+    const db = await this.openDB();
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').put(handle, 'current');
+    await new Promise(r => tx.oncomplete = r);
+    db.close();
+  },
+
+  loadHandle() {
+    return new Promise(res => {
+      this.openDB().then(db => {
+        const tx = db.transaction('handles', 'readonly');
+        const req = tx.objectStore('handles').get('current');
+        req.onsuccess = () => { db.close(); res(req.result || null); };
+        req.onerror   = () => { db.close(); res(null); };
+      }).catch(() => res(null));
+    });
+  },
+
+  openDB() {
+    return new Promise((res, rej) => {
+      const req = indexedDB.open('tidregg-files', 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('handles');
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    });
+  }
+};
+
+/* ========== STORAGE WRAPPER ==========
+   Filanslutning är primär sanning när den finns, annars webbläsare.
+   Skrivning till fil är debouncad så rapid editing inte blir laggig. */
+const Store = {
+  KEY: 'tidsregistrering_v1',
+  fileWriteTimer: null,
+  pendingData: null,
+
+  async load() {
+    if (FileStorage.handle) {
+      const fileData = await FileStorage.read();
+      if (fileData !== null) return fileData;
+    }
+    return this.loadFromBrowser();
+  },
+
+  async loadFromBrowser() {
+    try {
+      if (window.storage && window.storage.get) {
+        const r = await window.storage.get(this.KEY);
+        return r && r.value ? JSON.parse(r.value) : {};
+      }
+    } catch (e) {}
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  },
+
+  async save(data) {
+    const json = JSON.stringify(data);
+    try {
+      if (window.storage && window.storage.set) {
+        await window.storage.set(this.KEY, json);
+      } else {
+        localStorage.setItem(this.KEY, json);
+      }
+    } catch (e) {}
+    if (FileStorage.handle) {
+      this.pendingData = data;
+      if (this.fileWriteTimer) clearTimeout(this.fileWriteTimer);
+      this.fileWriteTimer = setTimeout(() => this.flushFile(), 400);
+    }
+  },
+
+  async flushFile() {
+    if (this.pendingData && FileStorage.handle) {
+      await FileStorage.write(this.pendingData);
+      this.pendingData = null;
+    }
+    this.fileWriteTimer = null;
+  }
+};
+
+/* ========== DATE & WEEK HELPERS ========== */
+const DAYS = ['Måndag','Tisdag','Onsdag','Torsdag','Fredag'];
+const DAYS_SHORT = ['Mån','Tis','Ons','Tors','Fre'];
+const MONTHS = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+
+function toISODate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+// Tidszonssäker parsning av "YYYY-MM-DD" → lokalt datum
+function parseISO(iso) {
+  const [y, m, day] = iso.split('-').map(Number);
+  return new Date(y, m - 1, day);
+}
+
+/* Smart tolkning av tidsinmatning. Accepterar:
+     "7"      → "07:00"
+     "07"     → "07:00"
+     "7:"     → "07:00"
+     "7:30"   → "07:30"
+     "7:3"    → "07:03"
+     "730"    → "07:30"
+     "0730"   → "07:30"
+     "1630"   → "16:30"
+     "7.30"   → "07:30"
+     "7,30"   → "07:30"
+   Returnerar tom sträng om input är tom eller ogiltig. */
+function parseTimeInput(str) {
+  if (str == null) return '';
+  str = String(str).trim();
+  if (!str) return '';
+
+  let h, m;
+  if (/[:.,]/.test(str)) {
+    const parts = str.split(/[:.,]/);
+    h = parts[0];
+    m = (parts[1] == null || parts[1] === '') ? '0' : parts[1];
+  } else {
+    if (!/^\d+$/.test(str)) return '';
+    if (str.length <= 2)      { h = str;               m = '0'; }
+    else if (str.length === 3){ h = str.slice(0,1);    m = str.slice(1); }
+    else if (str.length === 4){ h = str.slice(0,2);    m = str.slice(2); }
+    else return '';
+  }
+
+  h = parseInt(h, 10);
+  m = parseInt(m, 10);
+  if (isNaN(h) || h < 0 || h > 23) return '';
+  if (isNaN(m) || m < 0 || m > 59) return '';
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+/* Tolkning av timfält: "4", "4.5", "4,5", "4:30", "2h", "2h30m"
+   Returnerar decimaltimmar (0.25 till 24) eller default. */
+function parseHoursInput(str, def = 8) {
+  if (str == null) return def;
+  str = String(str).trim().toLowerCase();
+  if (!str) return def;
+
+  // "2h30m" eller "2h30" eller "2h"
+  const hm = str.match(/^(\d+)\s*h\s*(\d+)?\s*m?$/);
+  if (hm) {
+    const h = parseInt(hm[1], 10);
+    const m = hm[2] ? parseInt(hm[2], 10) : 0;
+    const total = h + m/60;
+    return Math.max(0.25, Math.min(24, total));
+  }
+
+  // "2:30"
+  if (str.includes(':')) {
+    const [hh, mm] = str.split(':');
+    const h = parseInt(hh, 10);
+    const m = mm ? parseInt(mm, 10) : 0;
+    if (!isNaN(h) && !isNaN(m)) return Math.max(0.25, Math.min(24, h + m/60));
+    return def;
+  }
+
+  // "2.5" eller "2,5"
+  const num = parseFloat(str.replace(',', '.'));
+  if (!isNaN(num)) return Math.max(0.25, Math.min(24, num));
+  return def;
+}
+
+// ISO-8601 week number
+function getISOWeek(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+  const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+  return { week: weekNo, year: date.getUTCFullYear() };
+}
+
+// Get Monday of ISO week
+function mondayOfWeek(year, week) {
+  const simple = new Date(year, 0, 1 + (week - 1) * 7);
+  const dow = simple.getDay();
+  const monday = new Date(simple);
+  if (dow <= 4) {
+    monday.setDate(simple.getDate() - simple.getDay() + 1);
+  } else {
+    monday.setDate(simple.getDate() + 8 - simple.getDay());
+  }
+  return monday;
+}
+
+// Number of ISO weeks in year
+function weeksInYear(year) {
+  const d = new Date(year, 11, 28);
+  return getISOWeek(d).week;
+}
+
+/* ========== SWEDISH HOLIDAYS ========== */
+// Beräkna påskdagen med Gauss formel
+function easterSunday(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19*a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2*e + 2*i - h - k) % 7;
+  const m = Math.floor((a + 11*h + 22*l) / 451);
+  const month = Math.floor((h + l - 7*m + 114) / 31);
+  const day = ((h + l - 7*m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+// Midsommardagen = lördag mellan 20-26 juni
+function midsummerDay(year) {
+  for (let day = 20; day <= 26; day++) {
+    const d = new Date(year, 5, day);
+    if (d.getDay() === 6) return d;
+  }
+}
+
+// Alla helgons dag = lördag mellan 31 okt - 6 nov
+function allSaintsDay(year) {
+  for (let day = 31; day <= 31; day++) {
+    const d = new Date(year, 9, day);
+    if (d.getDay() === 6) return d;
+  }
+  for (let day = 1; day <= 6; day++) {
+    const d = new Date(year, 10, day);
+    if (d.getDay() === 6) return d;
+  }
+}
+
+function swedishHolidays(year) {
+  const easter = easterSunday(year);
+  const midsummer = midsummerDay(year);
+  const allSaints = allSaintsDay(year);
+
+  const list = [
+    { date: new Date(year, 0, 1),   name: 'Nyårsdagen' },
+    { date: new Date(year, 0, 6),   name: 'Trettondedag jul' },
+    { date: addDays(easter, -2),    name: 'Långfredagen' },
+    { date: addDays(easter, 1),     name: 'Annandag påsk' },
+    { date: new Date(year, 4, 1),   name: 'Första maj' },
+    { date: addDays(easter, 39),    name: 'Kristi himmelsfärdsdag' },
+    { date: new Date(year, 5, 6),   name: 'Sveriges nationaldag' },
+    { date: addDays(midsummer, -1), name: 'Midsommarafton' },
+    { date: midsummer,              name: 'Midsommardagen' },
+    { date: addDays(allSaints, -1), name: 'Allhelgonaafton' },
+    { date: allSaints,              name: 'Alla helgons dag' },
+    { date: new Date(year, 11, 24), name: 'Julafton' },
+    { date: new Date(year, 11, 25), name: 'Juldagen' },
+    { date: new Date(year, 11, 26), name: 'Annandag jul' },
+    { date: new Date(year, 11, 31), name: 'Nyårsafton' },
+  ];
+  const map = {};
+  list.forEach(h => map[toISODate(h.date)] = h.name);
+  return map;
+}
+
+/* ========== STATUS TYPES ========== */
+const STATUS = {
+  work:     { label: 'Arbete',         color: null },
+  semester: { label: 'Semester',       color: 'var(--semester)' },
+  sjuk:     { label: 'Sjuk',           color: 'var(--sjuk)' },
+  vab:      { label: 'VAB',            color: 'var(--vab)' },
+  foraldra: { label: 'Föräldraledig',  color: 'var(--foraldra)' },
+  tjanst:   { label: 'Tjänstledig',    color: 'var(--tjanst)' },
+  komp:     { label: 'Kompledig',      color: 'var(--komp)' },
+  atk:      { label: 'ATK',            color: 'var(--atk)' },
+  ledig:    { label: 'Ledig',          color: 'var(--ledig)' },
+  rod:      { label: 'Röd dag',        color: 'var(--rod)' },
+};
+
+/* ========== APP STATE ========== */
+const App = {
+  data: {},        // { "YYYY-MM-DD": { in, lunchOut, lunchIn, out, car, status, note } }
+  year: new Date().getFullYear(),
+  week: 1,
+  holidays: {},
+
+  async init() {
+    // Försök återuppta tidigare filanslutning
+    await FileStorage.init();
+
+    this.data = await Store.load();
+    const today = new Date();
+    const { week, year } = getISOWeek(today);
+
+    // Default till innevarande vecka om ingen annan angivits
+    this.year = year;
+    this.week = week;
+
+    this.holidays = swedishHolidays(this.year);
+
+    this.renderYearSelect();
+    this.renderStorageStatus();
+    this.renderWeek();
+    this.renderStats();
+    this.attachEvents();
+  },
+
+  renderYearSelect() {
+    const sel = document.getElementById('year-select');
+    sel.innerHTML = '';
+    const now = new Date().getFullYear();
+    for (let y = now - 5; y <= now + 5; y++) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y;
+      if (y === this.year) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  },
+
+  getDay(isoDate) {
+    return this.data[isoDate] || {
+      in:'', lunchOut:'', lunchIn:'', out:'',
+      car: false, status: 'work', note: '', atkHours: undefined,
+      entries: []
+    };
+  },
+
+  async setDay(isoDate, patch) {
+    const cur = this.getDay(isoDate);
+    const updated = { ...cur, ...patch };
+    // Rensa atkHours när status inte är ATK
+    if (updated.status !== 'atk') delete updated.atkHours;
+    // Rensa tomma entries-arrayer så data förblir kompakt
+    if (Array.isArray(updated.entries) && updated.entries.length === 0) {
+      delete updated.entries;
+    }
+    // Om alla fält är tomma/default - rensa
+    const hasEntries = Array.isArray(updated.entries) && updated.entries.length > 0;
+    const isEmpty = !updated.in && !updated.lunchOut && !updated.lunchIn
+                 && !updated.out && !updated.car
+                 && updated.status === 'work' && !updated.note
+                 && !hasEntries;
+    if (isEmpty) {
+      delete this.data[isoDate];
+    } else {
+      this.data[isoDate] = updated;
+    }
+    await Store.save(this.data);
+  },
+
+  calcHours(d) {
+    if (!d.in || !d.out) return 0;
+    const toMin = t => {
+      const [h,m] = t.split(':').map(Number);
+      return h*60 + m;
+    };
+    let minutes = toMin(d.out) - toMin(d.in);
+    if (d.lunchOut && d.lunchIn) {
+      minutes -= (toMin(d.lunchIn) - toMin(d.lunchOut));
+    }
+    return Math.max(0, minutes / 60);
+  },
+
+  isNonWorkStatus(s) {
+    return ['semester','sjuk','vab','foraldra','tjanst','komp','atk','ledig','rod'].includes(s);
+  },
+
+  // Uppdaterar bara timcellen för en specifik rad utan att röra DOM-en i övrigt
+  updateRowHours(iso) {
+    const row = document.querySelector(`.day-row[data-date="${iso}"]`);
+    if (!row) return;
+    const day = this.getDay(iso);
+    const hours = this.isNonWorkStatus(day.status) ? 0 : this.calcHours(day);
+    const cell = row.querySelector('.hours-cell');
+    if (cell) {
+      cell.textContent = this.formatHours(hours);
+      cell.classList.toggle('zero', hours === 0);
+      cell.classList.toggle('over', hours > 8);
+    }
+  },
+
+  // Uppdaterar veckosumma och bildagar utan att bygga om raderna
+  updateWeekTotals() {
+    const monday = mondayOfWeek(this.year, this.week);
+    let weekTotal = 0, weekCars = 0;
+    for (let i = 0; i < 5; i++) {
+      const iso = toISODate(addDays(monday, i));
+      const day = this.getDay(iso);
+      if (!this.isNonWorkStatus(day.status)) {
+        weekTotal += this.calcHours(day);
+        if (day.car) weekCars += 1;
+      }
+    }
+    document.getElementById('week-total').innerHTML =
+      `${this.formatHours(weekTotal)} <span class="goal">/ 40 h</span>`;
+    document.getElementById('week-cars').textContent = weekCars;
+  },
+
+  formatHours(h) {
+    if (h === 0) return '0';
+    const whole = Math.floor(h);
+    const mins = Math.round((h - whole) * 60);
+    if (mins === 0) return `${whole}`;
+    return `${whole}:${String(mins).padStart(2,'0')}`;
+  },
+
+  renderWeek() {
+    const monday = mondayOfWeek(this.year, this.week);
+    const body = document.getElementById('week-body');
+    body.innerHTML = '';
+
+    const todayISO = toISODate(new Date());
+    let weekTotal = 0;
+    let weekCars = 0;
+
+    for (let i = 0; i < 5; i++) {
+      const d = addDays(monday, i);
+      const iso = toISODate(d);
+      const day = this.getDay(iso);
+      const isHoliday = !!this.holidays[iso];
+      const hasStoredData = !!this.data[iso];
+
+      // Auto-markera röda dagar ENDAST när dagen inte har någon sparad data.
+      // På så vis kan användaren explicit ändra till "Arbete" eller annat.
+      if (isHoliday && !hasStoredData) {
+        day.status = 'rod';
+      }
+
+      const isNonWork = ['semester','sjuk','vab','foraldra','tjanst','komp','atk','ledig','rod'].includes(day.status);
+      const hours = isNonWork ? 0 : this.calcHours(day);
+      weekTotal += hours;
+      if (day.car) weekCars += 1;
+
+      const row = document.createElement('div');
+      row.className = 'day-row';
+      row.dataset.status = day.status;
+      row.dataset.date = iso;
+      if (iso === todayISO) row.classList.add('today');
+      if (isHoliday) row.classList.add('holiday');
+      if (isNonWork) row.classList.add('non-work');
+
+      const dayLabel = `${DAYS_SHORT[i]}`;
+      const dateLabel = `${d.getDate()} ${MONTHS[d.getMonth()]}${isHoliday ? ' · ' + this.holidays[iso] : ''}`;
+      const entryCount = Array.isArray(day.entries) ? day.entries.length : 0;
+
+      row.innerHTML = `
+        <div class="day-label" title="Klicka för att öppna dagvy med projektposter">
+          <span class="name">${dayLabel} ${entryCount > 0 ? `<span class="entry-badge">${entryCount}</span>` : '<span class="expand-hint">›</span>'}</span>
+          <span class="date">${dateLabel}</span>
+        </div>
+        <input type="text" class="time-input" data-field="in"       value="${day.in}"       placeholder="—" maxlength="5" autocomplete="off" inputmode="numeric">
+        <input type="text" class="time-input" data-field="lunchOut" value="${day.lunchOut}" placeholder="—" maxlength="5" autocomplete="off" inputmode="numeric">
+        <input type="text" class="time-input" data-field="lunchIn"  value="${day.lunchIn}"  placeholder="—" maxlength="5" autocomplete="off" inputmode="numeric">
+        <input type="text" class="time-input" data-field="out"      value="${day.out}"      placeholder="—" maxlength="5" autocomplete="off" inputmode="numeric">
+        <div></div>
+        <div class="hours-cell ${hours === 0 ? 'zero' : (hours > 8 ? 'over' : '')}">${this.formatHours(hours)}</div>
+        <div class="car-cell">
+          <input type="checkbox" class="car-toggle" data-field="car" ${day.car ? 'checked' : ''} ${isNonWork ? 'disabled' : ''}>
+        </div>
+        <div class="status-cell">
+          <select class="status-select" data-field="status">
+            ${Object.entries(STATUS).map(([k,v]) =>
+              `<option value="${k}" ${day.status === k ? 'selected' : ''}>${v.label}</option>`
+            ).join('')}
+          </select>
+          ${day.status === 'atk' ? `<input type="text" class="hours-input" data-field="atkHours" value="${this.formatHours(day.atkHours != null ? day.atkHours : 8)}" title="Antal timmar ATK" autocomplete="off" inputmode="numeric">` : ''}
+        </div>
+        <input type="text" class="text-input" data-field="note" value="${(day.note || '').replace(/"/g,'&quot;')}" placeholder="T.ex. internt, kund, möte…">
+      `;
+
+      body.appendChild(row);
+    }
+
+    // Vecko-rubrik
+    const endDay = addDays(monday, 4);
+    document.getElementById('week-title').textContent = `Vecka ${this.week}`;
+    document.getElementById('week-dates').textContent =
+      `${monday.getDate()} ${MONTHS[monday.getMonth()]} – ${endDay.getDate()} ${MONTHS[endDay.getMonth()]} ${this.year}`;
+
+    document.getElementById('week-total').innerHTML =
+      `${this.formatHours(weekTotal)} <span class="goal">/ 40 h</span>`;
+    document.getElementById('week-cars').textContent = weekCars;
+
+    // Attach input events
+    body.querySelectorAll('input, select').forEach(el => {
+      const isTime = el.classList.contains('time-input');
+      const isHours = el.classList.contains('hours-input');
+
+      if (isTime) {
+        // Parsa vid blur (Tab, klick ut) och vid Enter.
+        // Spara ALLTID – jämförelse parsed==raw missar när värdet skiljer
+        // sig från det som ligger i store. Gör bara punkt-uppdateringar
+        // av DOM (timcell + veckofot) så Tab-fokus till nästa fält bevaras.
+        const commit = async () => {
+          const raw = el.value;
+          const parsed = parseTimeInput(raw);
+          if (raw && !parsed) {
+            this.showToast('Ogiltig tid – skriv t.ex. 7:30, 730 eller 7');
+          }
+          el.value = parsed;
+          const row = el.closest('.day-row');
+          const iso = row.dataset.date;
+          await this.setDay(iso, { [el.dataset.field]: parsed });
+          this.updateRowHours(iso);
+          this.updateWeekTotals();
+          this.renderStats();
+        };
+        el.addEventListener('blur', commit);
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+        });
+      } else if (isHours) {
+        const commit = async () => {
+          const raw = el.value;
+          const parsed = parseHoursInput(raw, 8);
+          el.value = this.formatHours(parsed);
+          const row = el.closest('.day-row');
+          const iso = row.dataset.date;
+          await this.setDay(iso, { atkHours: parsed });
+          this.renderStats();
+        };
+        el.addEventListener('blur', commit);
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+        });
+      } else if (el.dataset.field === 'status') {
+        // Status-ändring kräver full week-render (ATK-fält dyker upp/bort,
+        // tidsfält disableas, radfärg ändras)
+        el.addEventListener('change', async (e) => {
+          const row = e.target.closest('.day-row');
+          const iso = row.dataset.date;
+          await this.setDay(iso, { status: e.target.value });
+          this.renderWeek();
+          this.renderStats();
+        });
+      } else {
+        // Checkbox (bil) och textfält (notering) – ingen full re-render
+        el.addEventListener('change', async (e) => {
+          const row = e.target.closest('.day-row');
+          const iso = row.dataset.date;
+          const field = e.target.dataset.field;
+          const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+          await this.setDay(iso, { [field]: val });
+          if (field === 'car') this.updateWeekTotals();
+          this.renderStats();
+        });
+      }
+    });
+
+    // Klick på dag-etiketten öppnar dagvyn
+    body.querySelectorAll('.day-label').forEach(el => {
+      el.addEventListener('click', () => {
+        this.openDayView(el.closest('.day-row').dataset.date);
+      });
+    });
+  },
+
+  renderStats() {
+    document.getElementById('stats-year').textContent = this.year;
+    const prefix = `${this.year}-`;
+
+    let totalHours = 0;
+    let workDays = 0;
+    let carDays = 0;
+    let atkHours = 0;
+    const counts = { semester: 0, sjuk: 0, vab: 0, foraldra: 0, tjanst: 0, komp: 0, ledig: 0, rod: 0 };
+    const weekHours = {};    // ISO-vecka → summa timmar
+    const clientHours = {};  // kund → timmar
+    const projectHours = {}; // "kund / projekt" → timmar
+
+    Object.entries(this.data).forEach(([iso, d]) => {
+      if (!iso.startsWith(prefix)) return;
+      if (d.status === 'atk') {
+        atkHours += (typeof d.atkHours === 'number' ? d.atkHours : 8);
+      } else if (['semester','sjuk','vab','foraldra','tjanst','komp','ledig','rod'].includes(d.status)) {
+        counts[d.status] += 1;
+      } else {
+        const h = this.calcHours(d);
+        if (h > 0) {
+          totalHours += h;
+          workDays += 1;
+          const dt = parseISO(iso);
+          const w = getISOWeek(dt);
+          const wKey = `${w.year}-${String(w.week).padStart(2,'0')}`;
+          weekHours[wKey] = (weekHours[wKey] || 0) + h;
+        }
+        if (d.car) carDays += 1;
+      }
+      // Summera projektposter oavsett status (så man kan ha dem även i helger)
+      if (Array.isArray(d.entries)) {
+        d.entries.forEach(e => {
+          const dur = this.entryDuration(e);
+          if (dur <= 0) return;
+          const client = (e.client || '').trim() || '(ingen kund)';
+          const project = (e.project || '').trim();
+          clientHours[client] = (clientHours[client] || 0) + dur;
+          const pKey = project ? `${client} · ${project}` : client;
+          projectHours[pKey] = (projectHours[pKey] || 0) + dur;
+        });
+      }
+    });
+
+    // Övertid: summa av (veckotimmar - 40) för veckor som överstiger 40h
+    let overtimeHours = 0;
+    Object.values(weekHours).forEach(wh => {
+      if (wh > 40) overtimeHours += (wh - 40);
+    });
+
+    // Stat cards
+    const stats = [
+      { label: 'Arbetade timmar', value: this.formatHours(totalHours), unit: 'h' },
+      { label: 'Arbetsdagar',     value: workDays,                     unit: 'dgr' },
+      { label: 'Övertid',         value: this.formatHours(overtimeHours), unit: 'h', muted: overtimeHours === 0 },
+      { label: 'Dagar med bil',   value: carDays,                      unit: 'dgr' },
+      { label: 'Semesterdagar',   value: counts.semester,              unit: 'dgr', muted: counts.semester === 0 },
+      { label: 'Sjukdagar',       value: counts.sjuk,                  unit: 'dgr', muted: counts.sjuk === 0 },
+    ];
+    document.getElementById('year-stats').innerHTML = stats.map(s => `
+      <div class="stat">
+        <span class="label">${s.label}</span>
+        <span class="value ${s.muted ? 'muted' : ''}">${s.value}<span class="unit">${s.unit}</span></span>
+      </div>
+    `).join('');
+
+    // Legend med frånvaro
+    const legendItems = [
+      { key: 'bil',      label: 'Bil till jobbet',     count: carDays,                        color: 'var(--accent)' },
+      { key: 'semester', label: STATUS.semester.label, count: counts.semester + ' dgr',       color: STATUS.semester.color },
+      { key: 'sjuk',     label: STATUS.sjuk.label,     count: counts.sjuk + ' dgr',           color: STATUS.sjuk.color },
+      { key: 'vab',      label: STATUS.vab.label,      count: counts.vab + ' dgr',            color: STATUS.vab.color },
+      { key: 'foraldra', label: STATUS.foraldra.label, count: counts.foraldra + ' dgr',       color: STATUS.foraldra.color },
+      { key: 'komp',     label: STATUS.komp.label,     count: counts.komp + ' dgr',           color: STATUS.komp.color },
+      { key: 'atk',      label: STATUS.atk.label,      count: this.formatHours(atkHours) + ' h', color: STATUS.atk.color },
+      { key: 'tjanst',   label: STATUS.tjanst.label,   count: counts.tjanst + ' dgr',         color: STATUS.tjanst.color },
+      { key: 'ledig',    label: STATUS.ledig.label,    count: counts.ledig + ' dgr',          color: STATUS.ledig.color },
+      { key: 'rod',      label: STATUS.rod.label,      count: counts.rod + ' dgr',            color: STATUS.rod.color },
+    ];
+    document.getElementById('absence-legend').innerHTML = legendItems.map(item => `
+      <div class="legend-row">
+        <span class="dot" style="background:${item.color}"></span>
+        <span class="lbl">${item.label}</span>
+        <span class="count">${item.count}</span>
+      </div>
+    `).join('');
+
+    // Kund- & projektsummering
+    const clientPanel = document.getElementById('clients-panel');
+    const clientEntries = Object.entries(clientHours).sort((a,b) => b[1] - a[1]);
+    const projectEntries = Object.entries(projectHours).sort((a,b) => b[1] - a[1]);
+    const totalEntryHours = clientEntries.reduce((s, [,h]) => s + h, 0);
+
+    if (clientEntries.length === 0) {
+      clientPanel.innerHTML = `
+        <div class="clients-empty">
+          Ingen projekttid registrerad ännu.<br>
+          <span style="font-size:12px;color:var(--muted)">Klicka på en dag för att lägga till projektposter.</span>
+        </div>
+      `;
+    } else {
+      const maxH = clientEntries[0][1];
+      const clientRows = clientEntries.slice(0, 8).map(([name, h]) => `
+        <div class="client-row">
+          <div class="client-name">${this.escape(name)}</div>
+          <div class="client-bar"><div class="client-bar-fill" style="width:${(h/maxH*100).toFixed(1)}%"></div></div>
+          <div class="client-hours">${this.formatHours(h)} h</div>
+        </div>
+      `).join('');
+
+      const topProjects = projectEntries.slice(0, 5).map(([name, h]) => `
+        <div class="project-row">
+          <span class="project-name">${this.escape(name)}</span>
+          <span class="project-hours">${this.formatHours(h)} h</span>
+        </div>
+      `).join('');
+
+      clientPanel.innerHTML = `
+        <div class="clients-total">
+          <span class="lbl">Totalt registrerad projekttid</span>
+          <span class="val">${this.formatHours(totalEntryHours)} h</span>
+        </div>
+        <div class="clients-list">${clientRows}</div>
+        ${projectEntries.length > 0 ? `
+          <div class="projects-section">
+            <div class="projects-label">Topp uppdrag</div>
+            <div class="projects-list">${topProjects}</div>
+          </div>
+        ` : ''}
+      `;
+    }
+  },
+
+  escape(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  },
+
+  showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  },
+
+  renderStorageStatus() {
+    const bar = document.getElementById('storage-bar');
+    const textEl = document.getElementById('status-text');
+    const actionsEl = document.getElementById('status-actions');
+    bar.classList.remove('warn', 'ok');
+
+    if (FileStorage.handle) {
+      bar.classList.add('ok');
+      textEl.innerHTML = `Sparas automatiskt till <strong>${FileStorage.handle.name}</strong>`;
+      actionsEl.innerHTML = `
+        <button class="btn tiny" data-act="change">Byt fil</button>
+        <button class="btn tiny ghost" data-act="disconnect">Koppla från</button>
+      `;
+    } else if (FileStorage.pendingHandle) {
+      bar.classList.add('warn');
+      textEl.innerHTML = `Fil <strong>${FileStorage.pendingHandle.name}</strong> behöver återanslutas`;
+      actionsEl.innerHTML = `<button class="btn tiny" data-act="reconnect">Anslut igen</button>`;
+    } else if (FileStorage.isSupported()) {
+      bar.classList.add('warn');
+      textEl.innerHTML = `Sparas endast i webbläsaren. <strong>Koppla en fil</strong> för säker lagring — spara gärna i OneDrive/Dropbox för synk.`;
+      actionsEl.innerHTML = `
+        <button class="btn tiny" data-act="new">Skapa ny fil</button>
+        <button class="btn tiny" data-act="open">Öppna befintlig</button>
+      `;
+    } else {
+      bar.classList.add('warn');
+      textEl.innerHTML = `Webbläsaren stöder inte filkoppling. <strong>Ladda ner HTML-filen och öppna den lokalt</strong> i Chrome eller Edge, så du kan koppla en fil.`;
+      actionsEl.innerHTML = `<button class="btn tiny" data-act="backup">Säkerhetskopia</button>`;
+    }
+
+    actionsEl.querySelectorAll('[data-act]').forEach(b => {
+      b.addEventListener('click', () => this.handleStorageAction(b.dataset.act));
+    });
+  },
+
+  /* ——— DAY VIEW (PROJEKTPOSTER) ——— */
+  _dayViewIso: null,
+
+  openDayView(iso) {
+    this._dayViewIso = iso;
+    const d = parseISO(iso);
+    const day = this.getDay(iso);
+
+    const weekdayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+    document.getElementById('dayview-title').textContent =
+      `${weekdayNames[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+
+    const timesSummary = day.in && day.out
+      ? `${day.in} – ${day.out}${day.lunchOut && day.lunchIn ? ` · Lunch ${day.lunchOut}–${day.lunchIn}` : ''}`
+      : 'Inga tider registrerade';
+    document.getElementById('dayview-sub').textContent = timesSummary;
+
+    this.renderDayEntries();
+    document.getElementById('dayview-overlay').classList.add('open');
+  },
+
+  closeDayView() {
+    this._dayViewIso = null;
+    document.getElementById('dayview-overlay').classList.remove('open');
+    this.renderWeek();
+    this.renderStats();
+  },
+
+  getEntries(iso) {
+    const day = this.getDay(iso);
+    return Array.isArray(day.entries) ? day.entries : [];
+  },
+
+  entryDuration(e) {
+    if (!e.start || !e.end) return 0;
+    const toMin = t => {
+      const [h,m] = t.split(':').map(Number);
+      return h*60 + m;
+    };
+    return Math.max(0, (toMin(e.end) - toMin(e.start)) / 60);
+  },
+
+  renderDayEntries() {
+    const iso = this._dayViewIso;
+    if (!iso) return;
+    const day = this.getDay(iso);
+    const entries = this.getEntries(iso);
+    const container = document.getElementById('dayview-entries');
+
+    if (entries.length === 0) {
+      container.innerHTML = `
+        <div class="entries-empty">
+          <em>Inga projektposter än</em>
+          Lägg till en post för varje kund/uppdrag du arbetat med idag.<br>
+          Använd <strong>Fyll från dagens tider</strong> för att skapa en startmall.
+        </div>
+      `;
+    } else {
+      const head = `
+        <div class="entries-head">
+          <div>Start</div>
+          <div>Slut</div>
+          <div>Kund</div>
+          <div>Uppdrag</div>
+          <div>Kommentar</div>
+          <div></div>
+        </div>
+      `;
+      const rows = entries.map((e, i) => `
+        <div class="entry-row" data-idx="${i}">
+          <input type="text" class="entry-time" data-f="start"   value="${(e.start||'').replace(/"/g,'&quot;')}"   placeholder="—"   maxlength="5" autocomplete="off" inputmode="numeric">
+          <input type="text" class="entry-time" data-f="end"     value="${(e.end||'').replace(/"/g,'&quot;')}"     placeholder="—"   maxlength="5" autocomplete="off" inputmode="numeric">
+          <input type="text"                    data-f="client"  value="${(e.client||'').replace(/"/g,'&quot;')}"  placeholder="Kund">
+          <input type="text"                    data-f="project" value="${(e.project||'').replace(/"/g,'&quot;')}" placeholder="Uppdrag">
+          <input type="text"                    data-f="comment" value="${(e.comment||'').replace(/"/g,'&quot;')}" placeholder="Kommentar">
+          <button class="entry-del" title="Ta bort" data-del="${i}">✕</button>
+        </div>
+      `).join('');
+      container.innerHTML = head + rows;
+    }
+
+    // Event handlers
+    container.querySelectorAll('.entry-row input').forEach(el => {
+      const isTime = el.classList.contains('entry-time');
+      const commit = async () => {
+        const row = el.closest('.entry-row');
+        const idx = parseInt(row.dataset.idx, 10);
+        const field = el.dataset.f;
+        let val = el.value;
+        if (isTime) {
+          const parsed = parseTimeInput(val);
+          if (val && !parsed) this.showToast('Ogiltig tid');
+          val = parsed;
+          el.value = parsed;
+        }
+        const entries = [...this.getEntries(iso)];
+        entries[idx] = { ...entries[idx], [field]: val };
+        await this.setDay(iso, { entries });
+        this.updateDayViewSummary();
+      };
+      el.addEventListener('blur', commit);
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+      });
+    });
+
+    container.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const idx = parseInt(btn.dataset.del, 10);
+        const entries = [...this.getEntries(iso)];
+        entries.splice(idx, 1);
+        await this.setDay(iso, { entries });
+        this.renderDayEntries();
+        this.updateDayViewSummary();
+      });
+    });
+
+    this.updateDayViewSummary();
+  },
+
+  updateDayViewSummary() {
+    const iso = this._dayViewIso;
+    if (!iso) return;
+    const day = this.getDay(iso);
+    const entries = this.getEntries(iso);
+
+    const entrySum = entries.reduce((s, e) => s + this.entryDuration(e), 0);
+    const dayHours = this.isNonWorkStatus(day.status) ? 0 : this.calcHours(day);
+    const diff = entrySum - dayHours;
+
+    let matchClass = '';
+    let matchText = '';
+    if (dayHours > 0 || entrySum > 0) {
+      if (Math.abs(diff) < 0.0167) { // < 1 min
+        matchClass = 'match-ok';
+        matchText = '✓ matchar';
+      } else if (diff < 0) {
+        matchClass = 'match-off';
+        matchText = `saknar ${this.formatHours(-diff)} h`;
+      } else {
+        matchClass = 'match-off';
+        matchText = `+${this.formatHours(diff)} h över`;
+      }
+    }
+
+    document.getElementById('dayview-summary').innerHTML = `
+      <div class="stat-inline">
+        <span class="lbl">Dagens arbetstid</span>
+        <span class="val">${this.formatHours(dayHours)} h</span>
+      </div>
+      <div class="stat-inline">
+        <span class="lbl">Summa projektposter</span>
+        <span class="val ${matchClass}">${this.formatHours(entrySum)} h</span>
+      </div>
+      <div class="stat-inline">
+        <span class="lbl">Differens</span>
+        <span class="val ${matchClass}">${matchText || '—'}</span>
+      </div>
+      <div class="stat-inline" style="margin-left:auto">
+        <span class="lbl">Antal poster</span>
+        <span class="val">${entries.length}</span>
+      </div>
+    `;
+  },
+
+  async addDayEntry() {
+    const iso = this._dayViewIso;
+    if (!iso) return;
+    const entries = [...this.getEntries(iso)];
+    // Auto-starttid: om det redan finns poster, använd senaste slutet, annars dagens start
+    const day = this.getDay(iso);
+    let suggestedStart = '';
+    if (entries.length > 0) {
+      const last = entries[entries.length - 1];
+      if (last.end) suggestedStart = last.end;
+    } else if (day.in) {
+      suggestedStart = day.in;
+    }
+    entries.push({ start: suggestedStart, end: '', client: '', project: '', comment: '' });
+    await this.setDay(iso, { entries });
+    this.renderDayEntries();
+    // Fokusera på kund-fältet i den nya raden
+    setTimeout(() => {
+      const rows = document.querySelectorAll('#dayview-entries .entry-row');
+      const lastRow = rows[rows.length - 1];
+      if (lastRow) {
+        const clientInput = lastRow.querySelector('[data-f="client"]');
+        if (clientInput) clientInput.focus();
+      }
+    }, 30);
+  },
+
+  async fillFromDayTimes() {
+    const iso = this._dayViewIso;
+    if (!iso) return;
+    const day = this.getDay(iso);
+    if (!day.in || !day.out) {
+      this.showToast('Fyll i dagens start- och sluttid först');
+      return;
+    }
+    const entries = [...this.getEntries(iso)];
+    // Skapa en eller två poster baserat på lunch
+    if (day.lunchOut && day.lunchIn) {
+      entries.push({ start: day.in,       end: day.lunchOut, client: '', project: '', comment: '' });
+      entries.push({ start: day.lunchIn,  end: day.out,      client: '', project: '', comment: '' });
+    } else {
+      entries.push({ start: day.in, end: day.out, client: '', project: '', comment: '' });
+    }
+    await this.setDay(iso, { entries });
+    this.renderDayEntries();
+    this.showToast('Poster skapade från dagens tider');
+  },
+
+  async handleStorageAction(act) {
+    try {
+      if (act === 'new' || act === 'change') {
+        const handle = await FileStorage.createNew();
+        if (!handle) return;
+        await FileStorage.write(this.data);
+        this.renderStorageStatus();
+        this.showToast(`Kopplat till ${handle.name}`);
+      } else if (act === 'open') {
+        const handle = await FileStorage.openExisting();
+        if (!handle) return;
+        const fileData = await FileStorage.read();
+        if (fileData !== null && Object.keys(fileData).length > 0) {
+          this.data = fileData;
+          await Store.save(this.data);
+          this.renderWeek();
+          this.renderStats();
+          this.showToast(`Läste data från ${handle.name}`);
+        } else {
+          await FileStorage.write(this.data);
+          this.showToast(`Kopplat till tom fil – nuvarande data sparad`);
+        }
+        this.renderStorageStatus();
+      } else if (act === 'reconnect') {
+        const ok = await FileStorage.reconnect();
+        if (ok) {
+          const fileData = await FileStorage.read();
+          if (fileData !== null) {
+            this.data = fileData;
+            await Store.save(this.data);
+            this.renderWeek();
+            this.renderStats();
+          }
+          this.renderStorageStatus();
+          this.showToast('Filanslutning återupprättad');
+        } else {
+          this.showToast('Kunde inte återansluta');
+        }
+      } else if (act === 'disconnect') {
+        this.confirmAction(
+          'Koppla från fil?',
+          'Datan fortsätter sparas i webbläsaren. Själva filen på disk behålls oförändrad.',
+          async () => {
+            await FileStorage.disconnect();
+            this.renderStorageStatus();
+            this.showToast('Frånkopplad');
+          }
+        );
+      } else if (act === 'backup') {
+        document.getElementById('backup-data').value = JSON.stringify(this.data, null, 2);
+        document.getElementById('backup-overlay').classList.add('open');
+      }
+    } catch (e) {
+      this.showToast('Fel: ' + (e.message || 'okänt'));
+    }
+  },
+
+  confirmAction(title, text, callback) {
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-text').textContent = text;
+    const ov = document.getElementById('confirm-overlay');
+    ov.classList.add('open');
+    const okBtn = document.getElementById('confirm-ok');
+    const cancelBtn = document.getElementById('confirm-cancel');
+    const close = () => { ov.classList.remove('open'); okBtn.onclick = null; cancelBtn.onclick = null; };
+    okBtn.onclick = () => { close(); callback(); };
+    cancelBtn.onclick = close;
+  },
+
+  attachEvents() {
+    document.getElementById('year-select').addEventListener('change', (e) => {
+      this.year = parseInt(e.target.value);
+      this.week = 1;
+      this.holidays = swedishHolidays(this.year);
+      this.renderWeek();
+      this.renderStats();
+    });
+
+    document.getElementById('prev-week').addEventListener('click', () => {
+      if (this.week <= 1) {
+        this.year -= 1;
+        this.week = weeksInYear(this.year);
+        this.holidays = swedishHolidays(this.year);
+        this.renderYearSelect();
+      } else {
+        this.week -= 1;
+      }
+      this.renderWeek();
+      this.renderStats();
+    });
+
+    document.getElementById('next-week').addEventListener('click', () => {
+      const maxWeek = weeksInYear(this.year);
+      if (this.week >= maxWeek) {
+        this.year += 1;
+        this.week = 1;
+        this.holidays = swedishHolidays(this.year);
+        this.renderYearSelect();
+      } else {
+        this.week += 1;
+      }
+      this.renderWeek();
+      this.renderStats();
+    });
+
+    document.getElementById('btn-today').addEventListener('click', () => {
+      const today = new Date();
+      const { week, year } = getISOWeek(today);
+      this.year = year;
+      this.week = week;
+      this.holidays = swedishHolidays(this.year);
+      this.renderYearSelect();
+      this.renderWeek();
+      this.renderStats();
+    });
+
+    document.getElementById('btn-copy-prev').addEventListener('click', async () => {
+      const monday = mondayOfWeek(this.year, this.week);
+      const prevMonday = addDays(monday, -7);
+      let copied = 0;
+      for (let i = 0; i < 5; i++) {
+        const src = toISODate(addDays(prevMonday, i));
+        const dst = toISODate(addDays(monday, i));
+        const srcDay = this.data[src];
+        if (srcDay && (srcDay.in || srcDay.out)) {
+          // Kopiera endast tider, inte status eller noteringar
+          const dstDay = this.getDay(dst);
+          // Hoppa över om dagen är röd dag
+          if (dstDay.status === 'rod' || dstDay.status === 'semester') continue;
+          await this.setDay(dst, {
+            in: srcDay.in, lunchOut: srcDay.lunchOut,
+            lunchIn: srcDay.lunchIn, out: srcDay.out,
+            car: srcDay.car
+          });
+          copied++;
+        }
+      }
+      this.renderWeek();
+      this.renderStats();
+      this.showToast(copied > 0 ? `Kopierade ${copied} dagar` : 'Inga tider att kopiera');
+    });
+
+    document.getElementById('btn-clear-week').addEventListener('click', () => {
+      this.confirmAction(
+        'Rensa vecka ' + this.week + '?',
+        'Alla tider, noteringar och frånvaro för denna vecka tas bort. Åtgärden kan inte ångras.',
+        async () => {
+          const monday = mondayOfWeek(this.year, this.week);
+          for (let i = 0; i < 5; i++) {
+            const iso = toISODate(addDays(monday, i));
+            delete this.data[iso];
+          }
+          await Store.save(this.data);
+          this.renderWeek();
+          this.renderStats();
+          this.showToast('Vecka rensad');
+        }
+      );
+    });
+
+    // Backup
+    document.getElementById('btn-backup').addEventListener('click', () => {
+      document.getElementById('backup-data').value = JSON.stringify(this.data, null, 2);
+      document.getElementById('backup-overlay').classList.add('open');
+    });
+    document.getElementById('backup-close').addEventListener('click', () => {
+      document.getElementById('backup-overlay').classList.remove('open');
+    });
+    document.getElementById('backup-download').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(this.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tidsregistrering-backup-${toISODate(new Date())}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      this.showToast('Säkerhetskopia nedladdad');
+    });
+
+    // Läs in JSON-fil och fyll textrutan
+    document.getElementById('backup-pick-file').addEventListener('click', () => {
+      document.getElementById('backup-file-input').click();
+    });
+    document.getElementById('backup-file-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        document.getElementById('backup-data').value = reader.result;
+        this.showToast('Fil inläst – klicka Återställ för att använda');
+      };
+      reader.readAsText(file);
+      e.target.value = ''; // så samma fil kan väljas igen
+    });
+    document.getElementById('backup-restore').addEventListener('click', () => {
+      const txt = document.getElementById('backup-data').value.trim();
+      try {
+        const parsed = JSON.parse(txt);
+        if (typeof parsed !== 'object') throw new Error('Ogiltig data');
+        this.confirmAction(
+          'Återställ data?',
+          'All nuvarande data ersätts med innehållet i säkerhetskopian.',
+          async () => {
+            this.data = parsed;
+            await Store.save(this.data);
+            document.getElementById('backup-overlay').classList.remove('open');
+            this.renderWeek();
+            this.renderStats();
+            this.showToast('Data återställd');
+          }
+        );
+      } catch (e) {
+        this.showToast('Kunde inte läsa JSON: ' + e.message);
+      }
+    });
+
+    // Stäng dialog på overlay click
+    document.querySelectorAll('.overlay').forEach(ov => {
+      ov.addEventListener('click', (e) => {
+        if (e.target === ov) {
+          if (ov.id === 'dayview-overlay') {
+            this.closeDayView();
+          } else {
+            ov.classList.remove('open');
+          }
+        }
+      });
+    });
+
+    // Day view
+    document.getElementById('dayview-close').addEventListener('click', () => this.closeDayView());
+    document.getElementById('dayview-done').addEventListener('click',  () => this.closeDayView());
+    document.getElementById('dayview-add').addEventListener('click',   () => this.addDayEntry());
+    document.getElementById('dayview-fill').addEventListener('click',  () => this.fillFromDayTimes());
+
+    // Escape-tangent stänger dayview
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const ov = document.getElementById('dayview-overlay');
+        if (ov.classList.contains('open')) this.closeDayView();
+      }
+    });
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => App.init());
+
+// Flush pending file-writes innan sidan stängs/byter flik
+window.addEventListener('pagehide', () => Store.flushFile());
+window.addEventListener('beforeunload', () => Store.flushFile());
+</script>
+</body>
+</html>
